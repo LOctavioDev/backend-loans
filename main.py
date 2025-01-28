@@ -58,7 +58,7 @@ async def get_user(user_id: UUID):
     for user in db:
         if user.id == user_id:
             return user
-    raise HTTPException(status_code=404, detail="User not found")
+    raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
 
 
 @app.post("/users", response_model=User)
@@ -80,7 +80,7 @@ async def update_user(user_id: UUID, user: UpdateUser):
             if user.roles is not None:
                 db_user.roles = user.roles
             return db_user
-    raise HTTPException(status_code=404, detail="User not found")
+    raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
 
 
 @app.delete("/users/{user_id}")
@@ -89,5 +89,4 @@ async def delete_user(user_id: UUID):
         if user.id == user_id:
             db.remove(user)
             return {"message": "User deleted"}
-    raise HTTPException(status_code=404, detail="User not found")
-
+    raise HTTPException(status_code=404, detail=f"User with id {user_id} not found")
