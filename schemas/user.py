@@ -1,4 +1,8 @@
-from typing import List, Union, Optional
+"""
+This module defines the Schema User
+"""
+
+from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
 

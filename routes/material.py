@@ -1,3 +1,7 @@
+"""
+This module defines the Routes Material
+"""
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
@@ -44,11 +48,14 @@ def create_material(
     material: schemas.material.MaterialCreate, db: Session = Depends(get_db)
 ):
     existing_material = crud.material.get_material_by_details(
-        db=db, material_type=material.material_type, brand=material.brand, model=material.model
+        db=db,
+        material_type=material.material_type,
+        brand=material.brand,
+        model=material.model,
     )
     if existing_material:
         raise HTTPException(status_code=400, detail="Material already exists")
-    
+
     return crud.material.create_material(db=db, material=material)
 
 

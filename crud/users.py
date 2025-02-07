@@ -1,15 +1,26 @@
+"""
+This module defines the operations CRUD for Users
+"""
+
+from sqlalchemy.orm import Session
+import bcrypt
 import models.user
 import schemas.user
-from sqlalchemy.orm import Session
 import models
 import schemas
-import bcrypt
+
 
 def get_user(db: Session, id: int):
+    """
+    Retrive a user by its ID.
+    """
     return db.query(models.user.User).filter(models.user.User.id == id).first()
 
 
 def get_user_by_username(db: Session, username: str):
+    """
+    Retrieve a user by its username.
+    """
     return (
         db.query(models.user.User).filter(models.user.User.username == username).first()
     )
@@ -18,6 +29,9 @@ def get_user_by_username(db: Session, username: str):
 def get_user_by_credentials(
     db: Session, username: str, email: str, phone_number: str, password: str
 ):
+    """
+    Retrieve a user by its credentials.
+    """
     return (
         db.query(models.user.User)
         .filter(
@@ -31,11 +45,17 @@ def get_user_by_credentials(
 
 
 def get_users(db: Session, skip: int = 0, limit: int = 10):
+    """
+    Retrieve a list of users.
+    """
     return db.query(models.user.User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user: schemas.user.UserCreate):
-    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
+    """
+    Create a new user.
+    """
+    hashed_password = bcrypt.hashpw(user.password.encode("utf-8"), bcrypt.gensalt())
     db_user = models.user.User(
         first_name=user.first_name,
         last_name=user.last_name,
@@ -43,7 +63,7 @@ def create_user(db: Session, user: schemas.user.UserCreate):
         user_type=user.user_type,
         username=user.username,
         email=user.email,
-        password=hashed_password.decode('utf-8'),
+        password=hashed_password.decode("utf-8"),
         phone_number=user.phone_number,
         status=user.status,
         registration_date=user.registration_date,
@@ -56,6 +76,9 @@ def create_user(db: Session, user: schemas.user.UserCreate):
 
 
 def update_user(db: Session, id: int, user: schemas.user.UserUpdate):
+    """
+    Update an existing user.
+    """
     db_user = db.query(models.user.User).filter(models.user.User.id == id).first()
     if db_user:
         for var, value in vars(user).items():
@@ -66,6 +89,9 @@ def update_user(db: Session, id: int, user: schemas.user.UserUpdate):
 
 
 def delete_user(db: Session, id: int):
+    """
+    Delete a user by its ID.
+    """
     db_user = db.query(models.user.User).filter(models.user.User.id == id).first()
     if db_user:
         db.delete(db_user)

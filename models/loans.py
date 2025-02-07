@@ -1,4 +1,8 @@
-from sqlalchemy import Integer, Column, String, DateTime, Enum, ForeignKey
+"""
+This module defines the Loans model and related enums for the database.
+"""
+
+from sqlalchemy import Integer, Column, DateTime, Enum, ForeignKey
 from sqlalchemy.sql import func
 from config.db import Base
 import enum

@@ -1,3 +1,7 @@
+"""
+This module defines the Material model and related enums for the database.
+"""
+
 from sqlalchemy import Integer, Column, String, DateTime, Enum
 from sqlalchemy.sql import func
 from config.db import Base

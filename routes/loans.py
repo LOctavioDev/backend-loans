@@ -1,3 +1,7 @@
+"""
+This module defines the Routes Loans
+"""
+
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
@@ -43,7 +47,9 @@ def create_loan(loan: schemas.loans.LoanCreate, db: Session = Depends(get_db)):
 
 
 @loan.put("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
-async def update_loan(id: int, loan: schemas.loans.LoanUpdate, db: Session = Depends(get_db)):
+async def update_loan(
+    id: int, loan: schemas.loans.LoanUpdate, db: Session = Depends(get_db)
+):
     db_loan = crud.loans.update_loan(db=db, loan_id=id, loan=loan)
     if db_loan is None:
         raise HTTPException(status_code=404, detail="Loan not found")
