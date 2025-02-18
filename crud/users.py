@@ -97,3 +97,17 @@ def delete_user(db: Session, id: int):
         db.delete(db_user)
         db.commit()
     return db_user
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.user.User).filter(models.user.User.email == email).first()
+
+def verify_password(plain_password, hashed_password):
+    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+def authenticate_user(db: Session, email: str, password: str):
+    db_user = get_user_by_email(db, email=email)
+    if not db_user:
+        return None
+    if not verify_password(password, db_user.password):
+        return None
+    return db_user
