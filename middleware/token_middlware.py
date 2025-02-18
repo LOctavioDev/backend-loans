@@ -3,7 +3,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from utils.jwt_config import validate_token
 import json
 
-EXCLUDED_PATHS = ["/api/auth/login", "/api/auth/register"]
+EXCLUDED_PATHS = ["/api/auth/login", "/api/auth/register", "/api/users"]
 
 class TokenMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):

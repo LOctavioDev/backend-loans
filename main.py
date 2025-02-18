@@ -11,8 +11,8 @@ from middleware.token_middlware import TokenMiddleware
 
 app = FastAPI()
 app.include_router(auth, prefix="/api/auth")
-app.add_middleware(TokenMiddleware)
 app.include_router(user, prefix="/api")
+app.add_middleware(TokenMiddleware)
 app.include_router(material, prefix="/api")
 app.include_router(loan, prefix="/api")
 
