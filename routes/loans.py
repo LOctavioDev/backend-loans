@@ -2,7 +2,7 @@
 This module defines the Routes Loans
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 import crud.loans
@@ -11,7 +11,8 @@ import config.db
 import models.loans
 import schemas.loans
 
-loan = APIRouter()
+from .base_url import protected_route
+
 
 models.loans.Base.metadata.create_all(bind=config.db.engine)
 
@@ -24,13 +25,13 @@ def get_db():
         db.close()
 
 
-@loan.get("/loans", response_model=List[schemas.loans.Loan], tags=["Loans"])
+@protected_route.get("/loans", response_model=List[schemas.loans.Loan], tags=["Loans"])
 async def read_loans(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     db_loans = crud.loans.get_loans(db=db, skip=skip, limit=limit)
     return db_loans
 
 
-@loan.get("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
+@protected_route.get("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
 async def read_loan(id: int, db: Session = Depends(get_db)):
     db_loan = crud.loans.get_loan(db=db, loan_id=id)
     if db_loan is None:
@@ -38,7 +39,7 @@ async def read_loan(id: int, db: Session = Depends(get_db)):
     return db_loan
 
 
-@loan.post("/loans", response_model=schemas.loans.Loan, tags=["Loans"])
+@protected_route.post("/loans", response_model=schemas.loans.Loan, tags=["Loans"])
 def create_loan(loan: schemas.loans.LoanCreate, db: Session = Depends(get_db)):
     material_status = crud.material.get_material_status(db, loan.material_id)
     if material_status != "Available":
@@ -46,7 +47,7 @@ def create_loan(loan: schemas.loans.LoanCreate, db: Session = Depends(get_db)):
     return crud.loans.create_loan(db=db, loan=loan)
 
 
-@loan.put("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
+@protected_route.put("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
 async def update_loan(
     id: int, loan: schemas.loans.LoanUpdate, db: Session = Depends(get_db)
 ):
@@ -56,7 +57,7 @@ async def update_loan(
     return db_loan
 
 
-@loan.delete("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
+@protected_route.delete("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])
 async def delete_loan(id: int, db: Session = Depends(get_db)):
     db_loan = crud.loans.delete_loan(db=db, loan_id=id)
     if db_loan is None:

@@ -2,15 +2,14 @@
 This module defines the Routes Material
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 import crud.material
 import config.db
 import models.material
 import schemas.material
-
-material = APIRouter()
+from .base_url import protected_route
 
 models.material.Base.metadata.create_all(bind=config.db.engine)
 
@@ -23,7 +22,7 @@ def get_db():
         db.close()
 
 
-@material.get(
+@protected_route.get(
     "/materials", response_model=List[schemas.material.Material], tags=["Materials"]
 )
 async def read_materials(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
@@ -31,7 +30,7 @@ async def read_materials(skip: int = 0, limit: int = 10, db: Session = Depends(g
     return db_materials
 
 
-@material.get(
+@protected_route.get(
     "/material/{id}", response_model=schemas.material.Material, tags=["Materials"]
 )
 async def read_material(id: int, db: Session = Depends(get_db)):
@@ -41,7 +40,7 @@ async def read_material(id: int, db: Session = Depends(get_db)):
     return db_material
 
 
-@material.post(
+@protected_route.post(
     "/materials", response_model=schemas.material.Material, tags=["Materials"]
 )
 def create_material(
@@ -59,7 +58,7 @@ def create_material(
     return crud.material.create_material(db=db, material=material)
 
 
-@material.put(
+@protected_route.put(
     "/material/{id}", response_model=schemas.material.Material, tags=["Materials"]
 )
 async def update_material(
@@ -73,7 +72,7 @@ async def update_material(
     return db_material
 
 
-@material.delete(
+@protected_route.delete(
     "/material/{id}", response_model=schemas.material.Material, tags=["Materials"]
 )
 async def delete_material(id: int, db: Session = Depends(get_db)):
