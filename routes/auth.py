@@ -24,6 +24,7 @@ def get_db():
 
 @auth.post("/login", tags=["Auth"])
 async def login(request: LoginRequest, db: Session = Depends(get_db)):
+    print(request.email, request.password)
     user = crud.users.authenticate_user(
         db, email=request.email, password=request.password
     )

@@ -2,11 +2,12 @@
 This module defines the operations CRUD for Users
 """
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import bcrypt
 import models.user
 import schemas.user
-import models
+import models.loans
 import schemas
 
 
@@ -24,6 +25,7 @@ def get_user_by_username(db: Session, username: str):
     return (
         db.query(models.user.User).filter(models.user.User.username == username).first()
     )
+
 
 
 def get_user_by_credentials(
@@ -44,12 +46,17 @@ def get_user_by_credentials(
     )
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 10):
+def get_users(db: Session, skip: int = 0):
     """
     Retrieve a list of users.
     """
-    return db.query(models.user.User).offset(skip).limit(limit).all()
+    return db.query(models.user.User).offset(skip).all()
 
+def  get_active_users(db: Session, skip: int = 0):
+    """
+    Retrieve a list of users.
+    """
+    return db.query(models.user.User).filter(models.user.User.status == "Active").all()
 
 def create_user(db: Session, user: schemas.user.UserCreate):
     """
@@ -88,21 +95,50 @@ def update_user(db: Session, id: int, user: schemas.user.UserUpdate):
     return db_user
 
 
+def has_active_loans(db: Session, user_id: int) -> bool:
+    """
+    Check if the user has active loans.
+    """
+    active_loans = (
+        db.query(models.loans.Loan)
+        .filter(
+            models.loans.Loan.user_id == user_id,
+            models.loans.Loan.loan_status == "Active",
+        )
+        .count()
+    )
+    return active_loans > 0
+
+
 def delete_user(db: Session, id: int):
     """
-    Delete a user by its ID.
+    Delete a user by its ID if they have no active loans.
     """
     db_user = db.query(models.user.User).filter(models.user.User.id == id).first()
     if db_user:
+        if has_active_loans(db, id):
+            raise HTTPException(
+                status_code=400, detail="User has active loans and cannot be deleted"
+            )
         db.delete(db_user)
         db.commit()
     return db_user
 
 def get_user_by_email(db: Session, email: str):
+    """
+    Retrieve a user by its email.
+    """
     return db.query(models.user.User).filter(models.user.User.email == email).first()
 
+# def get_user_by_email(db: Session, email: str):
+#     return db.query(models.user.User).filter(models.user.User.email == email).first()
+
+
 def verify_password(plain_password, hashed_password):
-    return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+    return bcrypt.checkpw(
+        plain_password.encode("utf-8"), hashed_password.encode("utf-8")
+    )
+
 
 def authenticate_user(db: Session, email: str, password: str):
     db_user = get_user_by_email(db, email=email)

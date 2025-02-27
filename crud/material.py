@@ -65,11 +65,11 @@ def get_material_by_details(db: Session, material_type: str, brand: str, model: 
     )
 
 
-def get_materials(db: Session, skip: int = 0, limit: int = 10):
+def get_materials(db: Session, skip: int = 0):
     """
     Retrieve a list of materials with pagination.
     """
-    return db.query(models.material.Material).offset(skip).limit(limit).all()
+    return db.query(models.material.Material).offset(skip).all()
 
 
 def create_material(db: Session, material: schemas.material.MaterialCreate):
@@ -119,6 +119,19 @@ def delete_material(db: Session, material_id: int):
         .first()
     )
     if db_material:
-        db.delete(db_material)
-        db.commit()
-    return db_material
+        active_loans = (
+            db.query(models.loans.Loan)
+            .filter(
+                models.loans.Loan.material_id == material_id,
+                models.loans.Loan.loan_status == "Active",
+            )
+            .all()
+        )
+        if active_loans:
+            update_material_status(db, material_id, "Not Available")
+            return "Material has active loans"
+        else:
+            db.delete(db_material)
+            db.commit()
+            return "Material deleted successfully"
+    return "Material not found"

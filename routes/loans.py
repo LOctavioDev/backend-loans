@@ -27,7 +27,7 @@ def get_db():
 
 @protected_route.get("/loans", response_model=List[schemas.loans.Loan], tags=["Loans"])
 async def read_loans(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    db_loans = crud.loans.get_loans(db=db, skip=skip, limit=limit)
+    db_loans = crud.loans.get_loans(db=db, skip=skip)
     return db_loans
 
 
@@ -39,12 +39,13 @@ async def read_loan(id: int, db: Session = Depends(get_db)):
     return db_loan
 
 
-@protected_route.post("/loans", response_model=schemas.loans.Loan, tags=["Loans"])
+@protected_route.post("/loans", response_model=dict, tags=["Loans"])
 def create_loan(loan: schemas.loans.LoanCreate, db: Session = Depends(get_db)):
     material_status = crud.material.get_material_status(db, loan.material_id)
     if material_status != "Available":
         raise HTTPException(status_code=400, detail="Material not available for loan")
-    return crud.loans.create_loan(db=db, loan=loan)
+    crud.loans.create_loan(db=db, loan=loan)
+    return {"message": "Loan created successfully"}
 
 
 @protected_route.put("/loan/{id}", response_model=schemas.loans.Loan, tags=["Loans"])

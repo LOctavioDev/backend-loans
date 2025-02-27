@@ -26,7 +26,7 @@ def get_db():
     "/materials", response_model=List[schemas.material.Material], tags=["Materials"]
 )
 async def read_materials(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    db_materials = crud.material.get_materials(db=db, skip=skip, limit=limit)
+    db_materials = crud.material.get_materials(db=db, skip=skip)
     return db_materials
 
 
@@ -72,11 +72,12 @@ async def update_material(
     return db_material
 
 
-@protected_route.delete(
-    "/material/{id}", response_model=schemas.material.Material, tags=["Materials"]
-)
+@protected_route.delete("/material/{id}", response_model=dict, tags=["Materials"])
 async def delete_material(id: int, db: Session = Depends(get_db)):
-    db_material = crud.material.delete_material(db=db, material_id=id)
-    if db_material is None:
-        raise HTTPException(status_code=404, detail="Material not found")
-    return db_material
+    result = crud.material.delete_material(db=db, material_id=id)
+    if result == "Material deleted successfully":
+        return {"detail": result}
+    elif result == "Material has active loans":
+        raise HTTPException(status_code=400, detail=result)
+    else:
+        raise HTTPException(status_code=404, detail=result)

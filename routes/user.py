@@ -24,12 +24,22 @@ def get_db():
     finally:
         db.close()
 
+
 @protected_route.get("/users", response_model=List[schemas.user.User], tags=["Users"])
 @limiter.limit("100/minute")
-async def read_users(
-    request: Request, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
+async def read_users(request: Request, skip: int = 0, db: Session = Depends(get_db)):
+    db_users = crud.users.get_users(db=db, skip=skip)
+    return db_users
+
+
+@protected_route.get(
+    "/users/active", response_model=List[schemas.user.User], tags=["Users"]
+)
+@limiter.limit("100/minute")
+async def read_active_users(
+    request: Request, skip: int = 0, db: Session = Depends(get_db)
 ):
-    db_users = crud.users.get_users(db=db, skip=skip, limit=limit)
+    db_users = crud.users.get_active_users(db=db, skip=skip)
     return db_users
 
 
@@ -43,9 +53,9 @@ async def read_user(id: int, db: Session = Depends(get_db)):
 
 @protected_route.post("/users", response_model=schemas.user.User, tags=["Users"])
 def create_user(user: schemas.user.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.users.get_user_by_username(db, username=user.username)
+    db_user = crud.users.get_user_by_email(db, email=user.email)
     if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(status_code=400, detail="Email already registered")
     return crud.users.create_user(db=db, user=user)
 
 
@@ -61,7 +71,15 @@ async def update_user(
 
 @protected_route.delete("/user/{id}", response_model=schemas.user.User, tags=["Users"])
 async def delete_user(id: int, db: Session = Depends(get_db)):
-    db_user = crud.users.delete_user(db=db, id=id)
-    if db_user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return db_user
+    try:
+        db_user = crud.users.delete_user(db=db, id=id)
+        if db_user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        return db_user
+    except HTTPException as e:
+        if e.status_code == 400 and "active loans" in e.detail:
+            raise HTTPException(
+                status_code=400, detail="User has active loans and cannot be deleted"
+            )
+        else:
+            raise e

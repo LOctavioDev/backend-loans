@@ -3,12 +3,21 @@ This is a principal Module FastApi
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from routes.user import protected_route as user
 from routes.material import protected_route as material
 from routes.loans import protected_route as loan
 from routes.auth import auth
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(auth, prefix="/api/auth")
 app.include_router(user, prefix="/api")

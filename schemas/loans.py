@@ -13,6 +13,24 @@ class LoanStatus(str, Enum):
     Overdue = "Overdue"
 
 
+class User(BaseModel):
+    first_name: str
+    last_name: str
+    email: str
+
+    class Config:
+        orm_mode = True
+
+
+class Material(BaseModel):
+    material_type: str
+    brand: str
+    model: str
+
+    class Config:
+        orm_mode = True
+
+
 class LoanBase(BaseModel):
     user_id: int
     material_id: int
@@ -21,8 +39,14 @@ class LoanBase(BaseModel):
     loan_status: LoanStatus
 
 
-class LoanCreate(LoanBase):
-    pass
+
+class LoanCreate(BaseModel):
+    user_id: int
+    material_id: int
+    loan_date: datetime
+    return_date: datetime
+    loan_status: LoanStatus
+
 
 
 class LoanUpdate(LoanBase):
@@ -33,12 +57,27 @@ class LoanInDBBase(LoanBase):
     loan_id: int
 
     class Config:
-        from_attributes: True
+        orm_mode = True
 
 
 class Loan(LoanInDBBase):
-    pass
+    user: User
+    material: Material
+
+    class Config:
+        orm_mode = True
 
 
 class LoanInDB(LoanInDBBase):
     pass
+
+class LoanSimple(BaseModel):
+    loan_id: int
+    user_id: int
+    material_id: int
+    loan_date: datetime
+    return_date: datetime
+    loan_status: LoanStatus
+
+    class Config:
+        orm_mode = True
